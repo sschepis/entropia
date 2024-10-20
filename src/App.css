@@ -1,0 +1,94 @@
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  color: #333;
+}
+
+.simulation-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.simulation-main {
+  margin-right: 20px;
+}
+
+.simulation-sidebar {
+  width: 300px;
+  text-align: left;
+}
+
+.simulation-controls {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.simulation-controls button {
+  margin: 5px;
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.simulation-controls input[type="range"] {
+  width: 200px;
+  margin: 10px 0;
+}
+
+.simulation-controls input[type="number"] {
+  width: 60px;
+  margin-left: 10px;
+}
+
+.advanced-metrics {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+.advanced-metrics h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.advanced-metrics p {
+  margin: 5px 0;
+}
+
+canvas {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.agent-inspector {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+.agent-inspector h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.agent-inspector p {
+  margin: 5px 0;
+}
+
+.sparkline-chart {
+  margin: 10px 0;
+}
+
+.sparkline-label {
+  display: inline-block;
+  width: 120px;
+  font-weight: bold;
+}

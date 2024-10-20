@@ -1,0 +1,1403 @@
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  
+  
+  
+
+  <title>CodePen - The Evolution of Intelligence</title>
+
+    <link rel="canonical" href="https://codepen.io/sschepis/pen/vYoBGrV">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+
+  
+  
+<style>
+body {
+  background: #666;
+}
+</style>
+
+  
+  
+  
+</head>
+
+<body>
+  <h1>Intelligence Evolution Simulation</h1>
+    <canvas id="simulationCanvas"></canvas>
+    <canvas id="chartCanvas"></canvas>
+    <div id="stats"></div>
+    <div id="controls">
+        <div>
+            <label for="populationSize">Population Size:</label>
+            <input type="number" id="populationSize" min="10" max="500" value="100">
+        </div>
+        <div>
+            <label for="mutationRate">Mutation Rate:</label>
+            <input type="number" id="mutationRate" min="0" max="1" step="0.01" value="0.1">
+        </div>
+        <div>
+            <label for="foodCount">Food Count:</label>
+            <input type="number" id="foodCount" min="10" max="200" value="50">
+        </div>
+        <div>
+            <label for="predatorCount">Predator Count:</label>
+            <input type="number" id="predatorCount" min="0" max="20" value="3">
+        </div>
+        <div>
+            <label for="environmentalVariability">Environmental Variability:</label>
+            <input type="number" id="environmentalVariability" min="0" max="1" step="0.01" value="0.1">
+        </div>
+        <div>
+            <label for="maxSpeed">Max Speed:</label>
+            <input type="number" id="maxSpeed" min="1" max="10" value="5">
+        </div>
+        <div>
+            <label for="maxSize">Max Size:</label>
+            <input type="number" id="maxSize" min="1" max="10" value="5">
+        </div>
+        <div>
+            <label for="maxCamouflage">Max Camouflage:</label>
+            <input type="number" id="maxCamouflage" min="0" max="1" step="0.1" value="0.5">
+        </div>
+        <div>
+            <label for="maxSensoryRange">Max Sensory Range:</label>
+            <input type="number" id="maxSensoryRange" min="10" max="100" value="50">
+        </div>
+        <div>
+            <label for="enableReproduction">Enable Reproduction:</label>
+            <input type="checkbox" id="enableReproduction" checked>
+        </div>
+        <div>
+            <label for="enableLearning">Enable Learning:</label>
+            <input type="checkbox" id="enableLearning" checked>
+        </div>
+    </div>
+  
+      <script id="rendered-js" >
+// Intelligence Evolution Simulation
+
+const canvas = document.getElementById("simulationCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const statsDiv = document.getElementById("stats");
+const chartCanvas = document.getElementById("chartCanvas");
+const chartCtx = chartCanvas.getContext("2d");
+const CANVAS_WIDTH = 1200;
+const CANVAS_HEIGHT = 800;
+const POPULATION_SIZE = 20;
+const INITIAL_PREDATOR_COUNT = 10;
+const FOOD_COUNT = 100;
+const INITIAL_ENERGY = 1.0;
+const MAX_ENERGY = 2.0;
+const ENERGY_DECAY_RATE = 0.0001;
+const ENERGY_GAIN_FROM_FOOD = 0.3;
+const PREDATOR_ENERGY_GAIN = 0.5;
+const MOUTH_ENERGY_CONSUMPTION = 0.00001;
+const ENVIRONMENTAL_VARIABILITY = 0.2;
+const MUTATION_RATE = 0.05;
+const REPRODUCTION_THRESHOLD = 0.7;
+const OFFSPRING_ENERGY_RATIO = 0.3;
+
+// Organism parameters
+const MAX_SPEED = 3;
+const MAX_SIZE = 20;
+const MIN_SIZE = 5;
+const MAX_CAMOUFLAGE = 0.8;
+const MAX_SENSORY_RANGE = 150;
+const MIN_SENSORY_RANGE = 30;
+
+// Learning and behavior parameters
+const ENABLE_LEARNING = true;
+const BASE_LEARNING_RATE = 0.01;
+const KNOWLEDGE_SHARING_RATE = 0.05;
+const ENERGY_SHARING_RATE = 0.1;
+const AGGREGATION_THRESHOLD = 50;
+const AGGREGATION_RANGE = 15;
+const PACK_SIZE = 5;
+
+// Territory parameters
+const TERRITORY_SIZE = 80;
+const TERRITORY_MARK_DECAY = 0.002;
+
+// Neural Network parameters
+const DEFAULT_BRAIN_STRUCTURE = [10, 20, 15, 5];
+const MAX_MEMORY_SIZE = 50;
+const MAX_LONG_TERM_MEMORY_SIZE = 100;
+
+// Species recognition parameters
+const SPECIES_RECOGNITION_THRESHOLD = 0.2;
+
+// Genome bounds
+const GENOME_BOUNDS = {
+  speed: [0.2, 1.0],
+  size: [0.2, 1.0],
+  camouflage: [0, 1],
+  sensoryRange: [0.3, 1.0],
+  energyEfficiency: [0.5, 1.0],
+  robustness: [0, 1],
+  scaleIntegration: [0, 1],
+  goalDirectedness: [0, 1],
+  memoryUtilization: [0.2, 1.0],
+  emergentBehavior: [0, 1],
+  autonomy: [0.2, 1.0],
+  transferLearning: [0, 1],
+  feedbackIntegration: [0, 1],
+  selfModeling: [0, 1],
+  territorialAwareness: [0, 1],
+  aggressionLevel: [0, 1],
+  cooperationLevel: [0, 1],
+  curiosity: [0, 1],
+  adaptability: [0.2, 1.0],
+  resourceEfficiency: [0.5, 1.0],
+  reproductionThreshold: [0.6, 0.9],
+  mutationRate: [0.01, 0.1],
+  learningRate: [0.001, 0.1]
+};
+
+// Visualization parameters
+const PREDATOR_COLOR = 'rgb(255, 0, 0)';
+const PREY_COLOR = 'rgb(0, 0, 255)';
+const FOOD_COLOR = 'rgb(0, 255, 0)';
+const TERRITORY_COLOR = 'rgba(255, 255, 0, 0.1)';
+const CONNECTION_COLOR = 'rgba(255, 255, 255, 0.3)';
+
+class NeuralNetwork {
+  constructor(layers) {
+    this.layers = layers;
+    this.weights = [];
+    this.biases = [];
+    
+    for (let i = 1; i < layers.length; i++) {
+      this.weights.push(new Array(layers[i]).fill().map(() => new Array(layers[i-1]).fill().map(() => Math.random() - 0.5)));
+      this.biases.push(new Array(layers[i]).fill().map(() => Math.random() - 0.5));
+    }
+    
+    this.lastActivations = [];
+  }
+  
+  forward(inputs) {
+    let activation = inputs;
+    this.lastActivations = [activation];
+    
+    for (let i = 0; i < this.weights.length; i++) {
+      let newActivation = [];
+      for (let j = 0; j < this.weights[i].length; j++) {
+        let sum = this.biases[i][j];
+        for (let k = 0; k < this.weights[i][j].length; k++) {
+          sum += this.weights[i][j][k] * activation[k];
+        }
+        newActivation.push(this.sigmoid(sum));
+      }
+      activation = newActivation;
+      this.lastActivations.push(activation);
+    }
+    
+    return activation;
+  }
+  
+  backward(target, learningRate) {
+    let error = target.map((t, i) => t - this.lastActivations[this.lastActivations.length - 1][i]);
+    
+    for (let i = this.weights.length - 1; i >= 0; i--) {
+      let nextError = new Array(this.weights[i][0].length).fill(0);
+      
+      for (let j = 0; j < this.weights[i].length; j++) {
+        let delta = error[j] * this.sigmoidDerivative(this.lastActivations[i+1][j]);
+        this.biases[i][j] += delta * learningRate;
+        
+        for (let k = 0; k < this.weights[i][j].length; k++) {
+          let prevActivation = this.lastActivations[i][k];
+          this.weights[i][j][k] += prevActivation * delta * learningRate;
+          nextError[k] += this.weights[i][j][k] * error[j];
+        }
+      }
+      
+      error = nextError;
+    }
+  }
+  
+  sigmoid(x) {
+    return 1 / (1 + Math.exp(-x));
+  }
+  
+  sigmoidDerivative(x) {
+    return x * (1 - x);
+  }
+
+  mutate(rate) {
+    for (let i = 0; i < this.weights.length; i++) {
+      for (let j = 0; j < this.weights[i].length; j++) {
+        for (let k = 0; k < this.weights[i][j].length; k++) {
+          if (Math.random() < rate) {
+            this.weights[i][j][k] += (Math.random() - 0.5) * 0.1;
+          }
+        }
+        if (Math.random() < rate) {
+          this.biases[i][j] += (Math.random() - 0.5) * 0.1;
+        }
+      }
+    }
+  }
+
+  copy() {
+    let newNN = new NeuralNetwork(this.layers);
+    for (let i = 0; i < this.weights.length; i++) {
+      for (let j = 0; j < this.weights[i].length; j++) {
+        for (let k = 0; k < this.weights[i][j].length; k++) {
+          newNN.weights[i][j][k] = this.weights[i][j][k];
+        }
+        newNN.biases[i][j] = this.biases[i][j];
+      }
+    }
+    return newNN;
+  }
+}
+
+class Food {
+  constructor() {
+    this.respawn();
+  }
+
+  respawn() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.energy = Math.random() * 0.5 + 0.5; // Variable food energy
+  }
+
+  draw() {
+    ctx.fillStyle = `rgb(0, ${Math.floor(this.energy * 255)}, 0)`;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+class Organism {
+  constructor(x, y, isPredator = false, parentGenome = null) {
+    this.x = x;
+    this.y = y;
+    this.angle = Math.random() * Math.PI * 2;
+    this.energy = INITIAL_ENERGY;
+    this.isPredator = isPredator;
+    
+    // Genome
+    this.genome = parentGenome ? this.inheritGenome(parentGenome) : this.generateGenome();
+    
+    // Physical attributes derived from genome
+    this.updatePhysicalAttributes();
+    
+    // Neural Network (Brain)
+    this.brain = new NeuralNetwork(this.genome.brainStructure);
+    
+    // Memory and experience
+    this.shortTermMemory = new Array(this.genome.memorySize).fill(null);
+    this.longTermMemory = new Array(this.genome.longTermMemorySize).fill(null);
+    this.experience = 0;
+    
+    // Other properties
+    this.age = 0;
+    this.offspring = 0;
+    this.mouthOpen = false;
+    this.lastAction = null;
+    this.lastReward = 0;
+    this.lastEnergy = this.energy;
+    
+    this.connectedOrganisms = [];
+    this.aggregationFrames = 0;
+    this.territoryCenterX = this.x;
+    this.territoryCenterY = this.y;
+    this.territoryMarkStrength = 0;
+    this.pack = null;
+    this.speciesId = this.calculateSpeciesId();
+    this.intelligence = {
+      EEI: Math.random(), // Energy Efficiency Index
+      R: Math.random(), // Robustness
+      SIF: Math.random(), // Scale Integration Factor
+      GDM: Math.random(), // Goal-Directedness Measure
+      MUE: Math.random(), // Memory Utilization Efficiency
+      EBI: Math.random(), // Emergent Behavior Index
+      AQ: Math.random(), // Autonomy Quotient
+      TLC: Math.random(), // Transfer Learning Coefficient
+      FIM: Math.random(), // Feedback Integration Measure
+      SMI: Math.random(), // Self-Modeling Index
+      TA: Math.random() // Territorial Awareness
+    };
+
+  }
+
+  generateGenome() {
+    return {
+      speed: Math.random(),
+      size: Math.random(),
+      camouflage: Math.random(),
+      sensoryRange: Math.random(),
+      
+      energyEfficiency: Math.random(),
+      robustness: Math.random(),
+      scaleIntegration: Math.random(),
+      goalDirectedness: Math.random(),
+      memoryUtilization: Math.random(),
+      emergentBehavior: Math.random(),
+      autonomy: Math.random(),
+      transferLearning: Math.random(),
+      feedbackIntegration: Math.random(),
+      selfModeling: Math.random(),
+      territorialAwareness: Math.random(),
+      
+      fleeThreshold: Math.random(),
+      huntThreshold: Math.random(),
+      exploreThreshold: Math.random(),
+      socializeThreshold: Math.random(),
+      fleeWeight: Math.random(),
+      huntWeight: Math.random(),
+      exploreWeight: Math.random(),
+      socializeWeight: Math.random(),
+      
+      speciesRecognitionThreshold: Math.random(),
+      
+      aggressionLevel: Math.random(),
+      cooperationLevel: Math.random(),
+      resourceEfficiency: Math.random(),
+      reproductionThreshold: 0.5 + Math.random() * 0.5,
+      mutationRate: Math.random() * 0.2,
+      
+      // Brain-related properties
+      brainStructure: [10, 20, 15, 5], // Input, hidden layers, output
+      learningRate: Math.random() * 0.1,
+      memorySize: Math.floor(Math.random() * 20) + 10,
+      longTermMemorySize: Math.floor(Math.random() * 50) + 20,
+      curiosity: Math.random(),
+      adaptability: Math.random(),
+    };
+  }
+
+  inheritGenome(parentGenome) {
+    const childGenome = {};
+    for (let key in parentGenome) {
+      if (key === 'brainStructure') {
+        childGenome[key] = parentGenome[key].map(layer => {
+          return Math.max(1, layer + Math.floor((Math.random() - 0.5) * 5));
+        });
+      } else {
+        childGenome[key] = parentGenome[key] + (Math.random() - 0.5) * parentGenome.mutationRate;
+        childGenome[key] = Math.max(0, Math.min(1, childGenome[key]));
+      }
+    }
+    return childGenome;
+  }
+
+  updatePhysicalAttributes() {
+    this.speed = this.genome.speed * MAX_SPEED;
+    this.size = 3 + this.genome.size * MAX_SIZE;
+    this.camouflage = this.genome.camouflage * MAX_CAMOUFLAGE;
+    this.sensoryRange = 10 + this.genome.sensoryRange * MAX_SENSORY_RANGE;
+    this.mouthSize = this.size * 0.3;
+    this.color = this.randomColor();
+  }
+
+  randomColor() {
+    const hue = Math.floor(this.speciesId * 360) % 360;
+    return `hsla(${hue}, 100%, 50%, ${1 - this.camouflage})`;
+  }
+
+  calculateSpeciesId() {
+    let hash = 0;
+    for (let key in this.genome) {
+      if (typeof this.genome[key] === 'number') {
+        hash += this.genome[key] * 1000;
+      }
+    }
+    return hash % 1; // Normalize to [0, 1)
+  }
+
+  calculateSimilarityHash(other) {
+    let hash = 0;
+    for (let key in this.genome) {
+      if (typeof this.genome[key] === 'number' && typeof other.genome[key] === 'number') {
+        hash += Math.abs(this.genome[key] - other.genome[key]);
+      }
+    }
+    return hash;
+  }
+
+  isRelatedSpecies(other) {
+    return this.calculateSimilarityHash(other) < this.genome.speciesRecognitionThreshold;
+  }
+
+  think(inputs) {
+    // Combine inputs with short-term memory
+    const combinedInputs = [...inputs, ...this.shortTermMemory.slice(-5).flatMap(m => m || [0, 0, 0, 0, 0])];
+    
+    // Get decision from neural network
+    const decision = this.brain.forward(combinedInputs);
+    
+    // Update short-term memory
+    this.shortTermMemory.push(decision);
+    if (this.shortTermMemory.length > this.genome.memorySize) {
+      this.shortTermMemory.shift();
+    }
+    
+    return decision;
+  }
+
+  learn() {
+    if (this.lastAction && this.lastReward !== null) {
+      // Calculate the error
+      const error = this.lastReward - this.lastAction.reduce((a, b) => a + b, 0) / this.lastAction.length;
+      
+      // Backpropagate the error
+      this.brain.backward(this.lastAction, error * this.genome.learningRate);
+      
+      // Update long-term memory
+      this.longTermMemory.push({ action: this.lastAction, reward: this.lastReward });
+      if (this.longTermMemory.length > this.genome.longTermMemorySize) {
+        this.longTermMemory.shift();
+      }
+      
+      // Increase experience
+      this.experience += Math.abs(error) * this.genome.adaptability;
+    }
+    
+    this.lastAction = null;
+    this.lastReward = null;
+  }
+
+  move(food, predators, organisms, environmentalFactor) {
+    this.age++;
+    this.learn(); // Learn from the last action before deciding on a new one
+    
+    const nearestFood = this.findNearest(food, this.sensoryRange);
+    const nearestPredator = this.findNearest(predators, this.sensoryRange);
+    const nearestPrey = this.findNearest(organisms.filter(o => !o.isPredator), this.sensoryRange);
+    const nearestOrganism = this.findNearest(organisms.filter(o => o !== this), this.sensoryRange);
+
+    const inputs = [
+      this.energy / INITIAL_ENERGY,
+      nearestFood ? this.distanceTo(nearestFood) / this.sensoryRange : 1,
+      nearestPredator ? this.distanceTo(nearestPredator) / this.sensoryRange : 1,
+      nearestPrey ? this.distanceTo(nearestPrey) / this.sensoryRange : 1,
+      nearestOrganism ? this.distanceTo(nearestOrganism) / this.sensoryRange : 1,
+      this.isPredator ? 1 : 0,
+      Math.sin(this.angle),
+      Math.cos(this.angle),
+      environmentalFactor,
+      this.experience / 100
+    ];
+
+    const [flee, hunt, explore, socialize, eat] = this.think(inputs);
+    
+    let action;
+    if (flee > 0.5 && nearestPredator) {
+      this.angle = Math.atan2(this.y - nearestPredator.y, this.x - nearestPredator.x);
+      action = 'flee';
+    } else if (hunt > 0.5 && this.isPredator && nearestPrey) {
+      this.angle = Math.atan2(nearestPrey.y - this.y, nearestPrey.x - this.x);
+      action = 'hunt';
+    } else if (explore > 0.5) {
+      this.angle += (Math.random() - 0.5) * 0.5;
+      action = 'explore';
+    } else if (socialize > 0.5 && nearestOrganism) {
+      this.angle = Math.atan2(nearestOrganism.y - this.y, nearestOrganism.x - this.x);
+      action = 'socialize';
+    }
+    
+    this.mouthOpen = eat > 0.5;
+
+    this.lastAction = [flee, hunt, explore, socialize, eat];
+    
+    this.applyMovement(predators, environmentalFactor);
+    this.handleCollisions(organisms);
+    this.stayWithinBounds();
+    this.updateEnergy(environmentalFactor);
+    this.moveConnectedOrganisms();
+    this.updateTerritory();
+
+    // Calculate reward based on energy change and action
+    const energyChange = this.energy - this.lastEnergy;
+    this.lastReward = energyChange + (action === 'explore' ? this.genome.curiosity * 0.1 : 0);
+    this.lastEnergy = this.energy;
+  }
+  
+  shareEnergy(other) {
+    const energyDiff = this.energy - other.energy;
+    const sharedEnergy = energyDiff * ENERGY_SHARING_RATE;
+    this.energy -= sharedEnergy;
+    other.energy += sharedEnergy;
+  }
+  
+  updatePackBehavior(predators) {
+    if (!this.pack) {
+      this.findPack(predators);
+    } else {
+      // Follow the pack leader
+      if (this.pack.leader !== this) {
+        const target = this.pack.leader;
+        this.angle = Math.atan2(target.y - this.y, target.x - this.x);
+      }
+    }
+  }
+
+  findPack(predators) {
+    for (let predator of predators) {
+      if (predator !== this && predator.pack && predator.pack.members.length < PACK_SIZE) {
+        this.pack = predator.pack;
+        this.pack.members.push(this);
+        break;
+      }
+    }
+    // If no pack found, create a new one
+    if (!this.pack) {
+      this.pack = {
+        leader: this,
+        members: [this]
+      };
+    }
+  }
+
+  applyMovement(predators, environmentalFactor) {
+    let speedMultiplier = 1 + this.genome.scaleIntegration * (predators.length > 0 ? 0.5 : -0.2);
+    speedMultiplier *= 1 + this.genome.selfModeling * environmentalFactor;
+
+    let newX = this.x + Math.cos(this.angle) * this.speed * this.genome.energyEfficiency * speedMultiplier;
+    let newY = this.y + Math.sin(this.angle) * this.speed * this.genome.energyEfficiency * speedMultiplier;
+
+    this.x = newX;
+    this.y = newY;
+  }
+
+  handleCollisions(organisms) {
+    for (let org of organisms) {
+      if (org !== this) {
+        const distance = this.distanceTo(org);
+        const minDistance = this.size + org.size;
+        if (distance < minDistance) {
+          // Calculate the overlap
+          const overlap = minDistance - distance;
+
+          // Calculate the direction to move
+          const dx = this.x - org.x;
+          const dy = this.y - org.y;
+          const angle = Math.atan2(dy, dx);
+
+          // Move both organisms away from each other
+          const moveX = (overlap / 2) * Math.cos(angle);
+          const moveY = (overlap / 2) * Math.sin(angle);
+
+          this.x += moveX;
+          this.y += moveY;
+          org.x -= moveX;
+          org.y -= moveY;
+
+          // Adjust velocities (simple elastic collision)
+          const thisSpeed = Math.sqrt(this.speed * this.speed);
+          const orgSpeed = Math.sqrt(org.speed * org.speed);
+
+          this.angle = Math.atan2(this.y - org.y, this.x - org.x);
+          org.angle = Math.atan2(org.y - this.y, org.x - this.x);
+
+          this.speed = orgSpeed;
+          org.speed = thisSpeed;
+
+          if (!this.isEating && !org.isEating) {
+            this.tryAggregate(org);
+          }
+        }
+      }
+    }
+  }
+
+  stayWithinBounds() {
+    this.x = (this.x + canvas.width) % canvas.width;
+    this.y = (this.y + canvas.height) % canvas.height;
+  }
+
+  updateEnergy(environmentalFactor) {
+    let sizeEnergyFactor = Math.pow(this.size / MAX_SIZE, 2);
+    let energyLoss = ENERGY_DECAY_RATE * (2 - this.genome.energyEfficiency) * (1 + environmentalFactor) * (1 + sizeEnergyFactor);
+    
+    if (this.mouthOpen) {
+      energyLoss += MOUTH_ENERGY_CONSUMPTION;
+    }
+
+    this.energy -= energyLoss;
+
+    if (Math.random() < this.genome.robustness) {
+      this.energy += ENERGY_DECAY_RATE * 0.5;
+    }
+
+    return energyLoss;
+  }
+
+  updateMemory() {
+    this.memory.push({ x: this.x, y: this.y, energy: this.energy });
+
+    let memorySize = Math.floor(100 * this.genome.memoryUtilization) + 1;
+    if (this.memory.length > memorySize) {
+      this.memory.shift();
+    }
+
+    let badMemory = this.memory.find(m => m.energy < 0.2);
+    if (badMemory && this.distanceTo(badMemory) < 50) {
+      this.angle = Math.atan2(this.y - badMemory.y, this.x - badMemory.x);
+    }
+  }
+
+  moveConnectedOrganisms() {
+    for (let connectedOrg of this.connectedOrganisms) {
+      connectedOrg.x = this.x + (Math.random() - 0.5) * this.size;
+      connectedOrg.y = this.y + (Math.random() - 0.5) * this.size;
+    }
+  }
+
+  updateTerritory() {
+    // Only mark territory if energy is above a threshold
+    if (this.energy > INITIAL_ENERGY / 2) {
+      this.territoryMarkStrength = Math.min(1, this.territoryMarkStrength + 0.00005 * this.genome.territorialAwareness);
+    } else {
+      this.territoryMarkStrength = Math.max(0, (this.territoryMarkStrength - TERRITORY_MARK_DECAY) / 1000);
+    }
+  }
+
+  tryAggregate(other) {
+    if (this.connectedOrganisms.includes(other) || other.connectedOrganisms.includes(this)) {
+      this.aggregationFrames++;
+      other.aggregationFrames++;
+
+      if (this.aggregationFrames >= AGGREGATION_THRESHOLD && other.aggregationFrames >= AGGREGATION_THRESHOLD) {
+        this.aggregate(other);
+      }
+    } else {
+      this.aggregationFrames = 0;
+      other.aggregationFrames = 0;
+    }
+  }
+
+  aggregate(other) {
+    if (!this.connectedOrganisms.includes(other)) {
+      this.connectedOrganisms.push(other);
+      other.connectedOrganisms.push(this);
+
+      // Share energy
+      const totalEnergy = this.energy + other.energy;
+      this.energy = totalEnergy / 2;
+      other.energy = totalEnergy / 2;
+
+      // Share knowledge
+      this.shareKnowledge(other);
+    }
+  }
+
+  findNearest(objects, range) {
+    let nearest = null;
+    let minDist = Infinity;
+    for (let obj of objects) {
+      let dist = this.distanceTo(obj);
+      if (dist < minDist && dist <= range) {
+        minDist = dist;
+        nearest = obj;
+      }
+    }
+    return nearest;
+  }
+
+  distanceTo(obj) {
+    return Math.hypot(obj.x - this.x, obj.y - this.y);
+  }
+
+  eat(food) {
+    let energyGained = 0;
+    if (this.isPredator) {
+      if (this.mouthOpen && food instanceof Organism && !food.isPredator) {
+        energyGained = Math.min(food.energy, food.energy * PREDATOR_ENERGY_GAIN * (this.size / food.size));
+        this.energy += energyGained;
+        food.energy -= energyGained;
+      }
+    } else {
+      if (food instanceof Food) {
+        energyGained = food.energy * ENERGY_GAIN_FROM_FOOD * this.genome.resourceEfficiency;
+        this.energy += energyGained;
+        this.energy = Math.min(this.energy, INITIAL_ENERGY);
+        food.energy = 0;  // The food is consumed
+
+        // Share food with connected organisms
+        for (let connectedOrg of this.connectedOrganisms) {
+          let sharedEnergy = energyGained * 0.5 * this.genome.cooperationLevel;
+          connectedOrg.energy += sharedEnergy;
+          connectedOrg.energy = Math.min(connectedOrg.energy, INITIAL_ENERGY);
+          this.energy -= sharedEnergy;
+        }
+      }
+    }
+    return energyGained;
+  }
+
+  shareKnowledge(other) {
+    const sharingFactor = 0.1 * this.genome.cooperationLevel;
+    for (let key in this.genome) {
+      if (key !== 'mutationRate' && typeof this.genome[key] === 'number') {
+        const avgValue = (this.genome[key] + other.genome[key]) / 2;
+        this.genome[key] = this.genome[key] * (1 - sharingFactor) + avgValue * sharingFactor;
+        other.genome[key] = other.genome[key] * (1 - sharingFactor) + avgValue * sharingFactor;
+      }
+    }
+    this.updatePhysicalAttributes();
+    other.updatePhysicalAttributes();
+  }
+
+  mutate() {
+    for (let key in this.genome) {
+      if (Math.random() < this.genome.mutationRate) {
+        if (key === 'brainStructure') {
+          const layerToMutate = Math.floor(Math.random() * this.genome.brainStructure.length);
+          this.genome.brainStructure[layerToMutate] += Math.floor((Math.random() - 0.5) * 5);
+          this.genome.brainStructure[layerToMutate] = Math.max(1, this.genome.brainStructure[layerToMutate]);
+        } else if (typeof this.genome[key] === 'number') {
+          this.genome[key] += (Math.random() - 0.5) * 0.1;
+          this.genome[key] = Math.max(0, Math.min(1, this.genome[key]));
+        }
+      }
+    }
+    this.updatePhysicalAttributes();
+    this.brain = new NeuralNetwork(this.genome.brainStructure);
+    this.speciesId = this.calculateSpeciesId();
+  }
+
+draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    this.drawSensoryRange();
+    this.drawTerritory();
+    this.drawBody();
+    this.drawFace();
+    this.drawStatusIndicators();
+    this.drawConnections();
+   // this.drawBrainStructure();
+
+    ctx.restore();
+  }
+
+  drawSensoryRange() {
+    ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + this.genome.sensoryRange * 0.2})`;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.arc(0, 0, this.sensoryRange, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  drawTerritory() {
+    if (this.territoryMarkStrength > 0) {
+      ctx.strokeStyle = `rgba(0, 255, 0, ${this.territoryMarkStrength * 0.3})`;
+      ctx.setLineDash([2, 4]);
+      ctx.beginPath();
+      ctx.arc(this.territoryCenterX - this.x, this.territoryCenterY - this.y, TERRITORY_SIZE, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  drawBody() {
+    ctx.rotate(this.angle);
+
+    const speciesHue = Math.floor(this.speciesId * 360);
+    const energyFactor = Math.min(this.energy / INITIAL_ENERGY, 1);
+    
+    let sz = this.size * (0.5 + this.energy * 0.5);
+    sz = Math.max(sz, 3);
+
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, sz);
+    gradient.addColorStop(0, `hsla(${speciesHue}, 100%, 50%, ${1 - this.camouflage})`);
+    gradient.addColorStop(1, `hsla(${speciesHue}, 100%, 30%, ${1 - this.camouflage})`);
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.moveTo(sz, 0);
+    for (let i = 1; i <= 5; i++) {
+      const angle = i * Math.PI * 2 / 5;
+      const radius = i % 2 === 0 ? sz : sz * 0.6;
+      ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // Predator indicator
+    if (this.isPredator) {
+      ctx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sz * 1.2, 0);
+      ctx.lineTo(sz * 1.5, sz * 0.2);
+      ctx.lineTo(sz * 1.5, -sz * 0.2);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+      ctx.fill();
+    }
+  }
+
+  drawFace() {
+    const sz = this.size * (0.5 + this.energy * 0.5);
+
+    // Draw mouth
+    if (this.mouthOpen) {
+      ctx.fillStyle = this.isEating ? 'yellow' : 'white';
+      ctx.beginPath();
+      ctx.arc(sz * 0.7, 0, this.mouthSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw eyes
+    const eyeSize = sz * 0.3;
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(sz * 0.5, sz * 0.4, eyeSize, 0, Math.PI * 2);
+    ctx.arc(sz * 0.5, -sz * 0.4, eyeSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw pupils
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.arc(sz * 0.5 + eyeSize * 0.3, sz * 0.4, eyeSize * 0.5, 0, Math.PI * 2);
+    ctx.arc(sz * 0.5 + eyeSize * 0.3, -sz * 0.4, eyeSize * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw expression
+    const moodFactor = this.energy / INITIAL_ENERGY;
+    const smileAngle = Math.PI * (0.1 + moodFactor * 0.4);
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(sz * 0.3, 0, sz * 0.3, Math.PI + smileAngle, Math.PI * 2 - smileAngle);
+    ctx.stroke();
+  }
+
+  drawStatusIndicators() {
+    const sz = this.size * (0.5 + this.energy * 0.5);
+
+    // Intelligence indicator
+    const intelligenceLevel = this.calculateIntelligence();
+    ctx.fillStyle = `rgba(255, 255, 0, ${intelligenceLevel * 0.5})`;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, sz * 1.2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * intelligenceLevel);
+    ctx.closePath();
+    ctx.fill();
+
+    // Experience bar
+    const experienceLevel = Math.min(this.experience / 100, 1);
+    ctx.fillStyle = `rgba(0, 255, 255, ${experienceLevel * 0.7})`;
+    ctx.fillRect(-sz, -sz * 1.5, sz * 2 * experienceLevel, sz * 0.2);
+
+    // Age indicator
+    ctx.fillStyle = 'rgba(100, 100, 100, 0.7)';
+    ctx.beginPath();
+    ctx.arc(0, 0, sz * 1.3, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (this.age / 1000));
+    ctx.arc(0, 0, sz * 1.25, -Math.PI / 2 + Math.PI * 2 * (this.age / 1000), -Math.PI / 2, true);
+    ctx.closePath();
+    ctx.fill();
+
+    // Energy bar
+    const energyLevel = this.energy / INITIAL_ENERGY;
+    ctx.fillStyle = `rgb(${255 * (1 - energyLevel)}, ${255 * energyLevel}, 0)`;
+    ctx.fillRect(-sz, sz * 1.3, sz * 2 * energyLevel, sz * 0.2);
+  }
+
+  drawConnections() {
+    if (this.connectedOrganisms.length > 0) {
+      ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+      ctx.lineWidth = 2;
+      for (let connectedOrg of this.connectedOrganisms) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(connectedOrg.x - this.x, connectedOrg.y - this.y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  drawBrainStructure() {
+    const brainX = this.x + this.size * 2;
+    const brainY = this.y - this.size * 2;
+    const layerWidth = 20;
+    const nodeRadius = 3;
+    const verticalSpacing = 10;
+
+    ctx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+
+    for (let i = 0; i < this.genome.brainStructure.length; i++) {
+      const layerSize = this.genome.brainStructure[i];
+      for (let j = 0; j < layerSize; j++) {
+        const x = brainX + i * layerWidth;
+        const y = brainY + j * verticalSpacing - (layerSize - 1) * verticalSpacing / 2;
+
+        ctx.beginPath();
+        ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (i > 0) {
+          const prevLayerSize = this.genome.brainStructure[i - 1];
+          for (let k = 0; k < prevLayerSize; k++) {
+            const prevX = brainX + (i - 1) * layerWidth;
+            const prevY = brainY + k * verticalSpacing - (prevLayerSize - 1) * verticalSpacing / 2;
+            ctx.beginPath();
+            ctx.moveTo(prevX, prevY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+  }
+
+  calculateIntelligence() {
+    return Object.values(this.genome).reduce((sum, value) => {
+      return sum + (typeof value === 'number' ? value : 0);
+    }, 0) / Object.keys(this.genome).length;
+  }
+}
+
+class Simulation {
+  constructor() {
+    this.organisms = [];
+    this.food = [];
+    this.generation = 0;
+    this.environmentalFactor = 0;
+        this.totalEnergy = 0;
+    this.environmentalEnergy = 0;
+    this.data = {
+      generations: [],
+      avgIntelligence: [],
+      population: [],
+      avgEnergy: [],
+      predatorCount: [],
+      avgConnections: []
+    };
+    this.initPopulation();
+    this.spawnFood();
+  }
+
+    initPopulation() {
+    for (let i = 0; i < POPULATION_SIZE; i++) {
+      let org = new Organism(Math.random() * canvas.width, Math.random() * canvas.height);
+      this.organisms.push(org);
+      this.totalEnergy += org.energy;
+    }
+    for (let i = 0; i < INITIAL_PREDATOR_COUNT; i++) {
+      let predator = new Organism(Math.random() * canvas.width, Math.random() * canvas.height, true);
+      this.organisms.push(predator);
+      this.totalEnergy += predator.energy;
+    }
+  }
+
+  spawnFood() {
+    while (this.food.length < FOOD_COUNT) {
+      let newFood = new Food();
+      this.food.push(newFood);
+      this.totalEnergy += newFood.energy;
+    }
+  }
+
+  update() {
+    this.environmentalFactor =
+      Math.sin(this.generation / 100) * ENVIRONMENTAL_VARIABILITY;
+
+    for (let org of this.organisms) {
+      org.move(
+        this.food,
+        this.organisms.filter((o) => o.isPredator),
+        this.organisms,
+        this.environmentalFactor
+      );
+      if (!org.isPredator) {
+        for (let i = this.food.length - 1; i >= 0; i--) {
+          if (org.distanceTo(this.food[i]) < org.size) {
+            org.eat(this.food[i]);
+            this.food[i].respawn();
+          }
+        }
+      } else {
+        for (let i = this.organisms.length - 1; i >= 0; i--) {
+          if (
+            !this.organisms[i].isPredator &&
+            org.distanceTo(this.organisms[i]) <
+              org.size + this.organisms[i].size
+          ) {
+            if (
+              org.mouthOpen &&
+              Math.random() >
+                this.organisms[i].intelligence.AQ + this.organisms[i].camouflage
+            ) {
+              const preyConsumed = org.eat(this.organisms[i]);
+              if (preyConsumed) {
+                this.organisms.splice(i, 1);
+              }
+            }
+          }
+        }
+      }
+      
+      this.environmentalEnergy += org.updateEnergy(this.environmentalFactor);
+      
+      if (!org.isPredator) {
+        for (let i = this.food.length - 1; i >= 0; i--) {
+          if (org.distanceTo(this.food[i]) < org.size) {
+            let energyGained = org.eat(this.food[i]);
+            if (this.food[i].energy <= 0) {
+              this.food.splice(i, 1);
+            }
+          }
+        }
+      } else {
+        for (let i = this.organisms.length - 1; i >= 0; i--) {
+          if (!this.organisms[i].isPredator && org.distanceTo(this.organisms[i]) < org.size + this.organisms[i].size) {
+            if (org.mouthOpen && Math.random() > this.organisms[i].genome.autonomy + this.organisms[i].camouflage) {
+              org.eat(this.organisms[i]);
+              if (this.organisms[i].energy <= 0) {
+                this.totalEnergy -= this.organisms[i].energy;
+                this.organisms.splice(i, 1);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Energy and knowledge sharing
+    for (let i = 0; i < this.organisms.length; i++) {
+      for (let j = i + 1; j < this.organisms.length; j++) {
+        if (
+          this.organisms[i].isPredator === this.organisms[j].isPredator &&
+          this.organisms[i].distanceTo(this.organisms[j]) <
+            this.organisms[i].size + this.organisms[j].size
+        ) {
+          this.organisms[i].contactTurn++;
+          this.organisms[j].contactTurn++;
+          if (
+            this.organisms[i].contactTurn > 1 &&
+            this.organisms[j].contactTurn > 1
+          ) {
+            this.organisms[i].shareEnergy(this.organisms[j]);
+            this.organisms[i].shareKnowledge(this.organisms[j]);
+            this.organisms[j].shareKnowledge(this.organisms[i]);
+          }
+        } else {
+          this.organisms[i].contactTurn = 0;
+          this.organisms[j].contactTurn = 0;
+        }
+      }
+    }
+
+        // Energy sharing
+    for (let i = 0; i < this.organisms.length; i++) {
+      for (let j = i + 1; j < this.organisms.length; j++) {
+        if (this.organisms[i].isPredator === this.organisms[j].isPredator &&
+            this.organisms[i].distanceTo(this.organisms[j]) < this.organisms[i].size + this.organisms[j].size) {
+          this.organisms[i].shareEnergy(this.organisms[j]);
+        }
+      }
+    }
+
+    this.organisms = this.organisms.filter(org => org.energy > 0);
+
+    if (this.organisms.filter(org => !org.isPredator).length < POPULATION_SIZE / 2) {
+      this.reproduce();
+      this.generation++;
+      this.updateData();
+    }
+
+    this.spawnFood();
+
+    // Check energy conservation
+    let currentTotalEnergy = this.calculateTotalEnergy();
+    if (Math.abs(this.totalEnergy - currentTotalEnergy - this.environmentalEnergy) > 0.001) {
+      console.warn("Energy is not conserved!");
+      console.log("Initial total energy:", this.totalEnergy);
+      console.log("Current total energy:", currentTotalEnergy);
+      console.log("Environmental energy:", this.environmentalEnergy);
+    }
+    
+    this.organisms = this.organisms.filter((org) => org.energy > 0);
+
+    if (
+      this.organisms.filter((org) => !org.isPredator).length <
+      POPULATION_SIZE / 2
+    ) {
+      this.reproduce();
+      this.generation++;
+      this.updateData();
+    }
+
+    this.spawnFood();
+  }
+
+  reproduce() {
+
+    const newOrganisms = [];
+    for (let org of this.organisms) {
+      if (Math.random() < org.energy && this.isInItsTerritory(org)) {
+        const child = new Organism(org.x, org.y, org.isPredator);
+        this.inheritTraits(child, org);
+        child.mutate();
+        newOrganisms.push(child);
+        org.offspring++;
+        
+        this.energy /=2.2;
+        org.energy /= 2.5;
+
+        if (Math.random() < org.intelligence.FIM) {
+          for (let key in child.intelligence) {
+            child.intelligence[key] = Math.min(
+              1,
+              child.intelligence[key] * 1.05
+            );
+            child.energy /= 2;
+          }
+        }
+      }
+    }
+    this.organisms.push(...newOrganisms);
+  }
+  calculateTotalEnergy() {
+    return this.organisms.reduce((sum, org) => sum + org.energy, 0) +
+           this.food.reduce((sum, food) => sum + food.energy, 0);
+  }
+  
+  shareEnergy(other) {
+    const energyDiff = this.energy - other.energy;
+    const sharedEnergy = energyDiff * ENERGY_SHARING_RATE;
+    this.energy -= sharedEnergy;
+    other.energy += sharedEnergy;
+  }
+
+  shareKnowledge(other) {
+    for (let key in this.intelligence) {
+      if (this.intelligence[key] > other.intelligence[key]) {
+        const knowledgeDiff = this.intelligence[key] - other.intelligence[key];
+        const sharedKnowledge = knowledgeDiff * KNOWLEDGE_SHARING_RATE;
+        other.intelligence[key] += sharedKnowledge;
+        this.intelligence[key] -= sharedKnowledge * 0.5; // The teacher also learns by teaching
+      }
+    }
+  }
+
+  isInItsTerritory(org) {
+    if (org.isPredator) return true; // Predators don't care about territory
+
+    let distanceToCenter = Math.sqrt(
+      Math.pow(org.x - org.territoryCenterX, 2) +
+        Math.pow(org.y - org.territoryCenterY, 2)
+    );
+    return distanceToCenter <= TERRITORY_SIZE;
+  }
+
+  inheritTraits(child, parent) {
+    for (let key in parent.intelligence) {
+      // Inherit with a slight variation
+      child.intelligence[key] = Math.max(
+        0,
+        Math.min(1, parent.intelligence[key] + (Math.random() - 0.5) * 0.1)
+      );
+    }
+    child.speed = Math.max(
+      0,
+      Math.min(MAX_SPEED, parent.speed + (Math.random() - 0.5) * 0.2)
+    );
+    child.size = Math.max(
+      1,
+      Math.min(MAX_SIZE, parent.size + (Math.random() - 0.5) * 3)
+    );
+    child.camouflage = Math.max(
+      0,
+      Math.min(MAX_CAMOUFLAGE, parent.camouflage + (Math.random() - 0.5) * 0.25)
+    );
+    child.sensoryRange = Math.max(
+      10,
+      Math.min(
+        MAX_SENSORY_RANGE,
+        parent.sensoryRange + (Math.random() - 0.5) * 2
+      )
+    );
+  }
+
+  updateData() {
+    const avgIntelligence =
+      this.organisms.reduce(
+        (sum, org) => sum + org.calculateIntelligence(),
+        0
+      ) / this.organisms.length;
+    const avgEnergy =
+      this.organisms.reduce((sum, org) => sum + org.energy, 0) /
+      this.organisms.length;
+    const predatorCount = this.organisms.filter((org) => org.isPredator).length;
+    const avgConnections =
+      this.organisms.reduce(
+        (sum, org) => sum + org.connectedOrganisms.length,
+        0
+      ) / this.organisms.length;
+
+    this.data.generations.push(this.generation);
+    this.data.avgIntelligence.push(avgIntelligence);
+    this.data.population.push(this.organisms.length);
+    this.data.avgEnergy.push(avgEnergy);
+    this.data.predatorCount.push(predatorCount);
+    this.data.avgConnections.push(avgConnections);
+
+    // Keep only the last 100 data points
+    if (this.data.generations.length > 100) {
+      this.data.generations.shift();
+      this.data.avgIntelligence.shift();
+      this.data.population.shift();
+      this.data.avgEnergy.shift();
+      this.data.predatorCount.shift();
+      this.data.avgConnections.shift();
+    }
+  }
+
+draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.food.forEach(food => food.draw());
+    this.organisms.forEach(org => org.draw());
+
+    const avgIntelligence = this.organisms.reduce((sum, org) => {
+      return sum + (org.calculateIntelligence ? org.calculateIntelligence() : 0);
+    }, 0) / this.organisms.length;
+
+    const avgEnergy = this.organisms.reduce((sum, org) => sum + org.energy, 0) / this.organisms.length;
+    const avgSpeed = this.organisms.reduce((sum, org) => sum + org.speed, 0) / this.organisms.length;
+    const avgSize = this.organisms.reduce((sum, org) => sum + org.size, 0) / this.organisms.length;
+    const avgCamouflage = this.organisms.reduce((sum, org) => sum + org.camouflage, 0) / this.organisms.length;
+    const avgSensoryRange = this.organisms.reduce((sum, org) => sum + org.sensoryRange, 0) / this.organisms.length;
+
+    let intelligenceComponents = {};
+    if (this.organisms.length > 0 && this.organisms[0].genome) {
+      intelligenceComponents = Object.keys(this.organisms[0].genome).reduce((acc, key) => {
+        acc[key] = this.organisms.reduce((sum, org) => sum + (org.genome ? org.genome[key] : 0), 0) / this.organisms.length;
+        return acc;
+      }, {});
+    }
+
+    const predatorCount = this.organisms.filter(org => org.isPredator).length;
+    const avgConnections = this.organisms.reduce((sum, org) => sum + (org.connectedOrganisms ? org.connectedOrganisms.length : 0), 0) / this.organisms.length;
+
+    statsDiv.innerHTML = `
+      Generation: ${this.generation}<br>
+      Population: ${this.organisms.length}<br>
+      Predators: ${predatorCount}<br>
+      Average Intelligence: ${avgIntelligence.toFixed(4)}<br>
+      Average Energy: ${avgEnergy.toFixed(4)}<br>
+      Average Speed: ${avgSpeed.toFixed(4)}<br>
+      Average Size: ${avgSize.toFixed(4)}<br>
+      Average Camouflage: ${avgCamouflage.toFixed(4)}<br>
+      Average Sensory Range: ${avgSensoryRange.toFixed(4)}<br>
+      Average Connections: ${avgConnections.toFixed(4)}<br>
+      Environmental Factor: ${this.environmentalFactor.toFixed(4)}<br>
+      Intelligence Components:<br>
+      ${Object.entries(intelligenceComponents).map(([key, value]) => `${key}: ${value.toFixed(4)}`).join("<br>")}
+    `;
+
+    this.drawChart();
+  }
+
+  drawChart() {
+    chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+
+    const drawLine = (data, color, yScale) => {
+      chartCtx.strokeStyle = color;
+      chartCtx.beginPath();
+      for (let i = 0; i < data.length; i++) {
+        const x = (i / (data.length - 1)) * chartCanvas.width;
+        const y = chartCanvas.height - data[i] * yScale;
+        if (i === 0) {
+          chartCtx.moveTo(x, y);
+        } else {
+          chartCtx.lineTo(x, y);
+        }
+      }
+      chartCtx.stroke();
+    };
+
+    drawLine(this.data.avgIntelligence, "blue", chartCanvas.height);
+    drawLine(
+      this.data.population.map((p) => p / POPULATION_SIZE),
+      "green",
+      chartCanvas.height
+    );
+    drawLine(this.data.avgEnergy, "red", chartCanvas.height);
+    drawLine(
+      this.data.predatorCount.map((p) => p / INITIAL_PREDATOR_COUNT),
+      "purple",
+      chartCanvas.height
+    );
+    drawLine(this.data.avgConnections, "orange", chartCanvas.height * 5); // Scaling connections to be visible
+  }
+}
+
+const sim = new Simulation();
+
+function gameLoop() {
+  sim.update();
+  sim.draw();
+  requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+
+// User controls
+document.getElementById("populationSize").addEventListener("change", (e) => {
+  POPULATION_SIZE = parseInt(e.target.value);
+});
+
+document.getElementById("mutationRate").addEventListener("change", (e) => {
+  MUTATION_RATE = parseFloat(e.target.value);
+});
+
+document.getElementById("foodCount").addEventListener("change", (e) => {
+  FOOD_COUNT = parseInt(e.target.value);
+});
+
+document
+  .getElementById("environmentalVariability")
+  .addEventListener("change", (e) => {
+    ENVIRONMENTAL_VARIABILITY = parseFloat(e.target.value);
+  });
+
+document.getElementById("maxSpeed").addEventListener("change", (e) => {
+  MAX_SPEED = parseInt(e.target.value);
+});
+
+document.getElementById("maxSize").addEventListener("change", (e) => {
+  MAX_SIZE = parseInt(e.target.value);
+});
+
+document.getElementById("maxCamouflage").addEventListener("change", (e) => {
+  MAX_CAMOUFLAGE = parseFloat(e.target.value);
+});
+
+document.getElementById("maxSensoryRange").addEventListener("change", (e) => {
+  MAX_SENSORY_RANGE = parseInt(e.target.value);
+});
+
+document
+  .getElementById("enableReproduction")
+  .addEventListener("change", (e) => {
+    ENABLE_REPRODUCTION = e.target.checked;
+  });
+
+document.getElementById("enableLearning").addEventListener("change", (e) => {
+  ENABLE_LEARNING = e.target.checked;
+});
+    </script>
+
+  
+</body>
+
+</html>
